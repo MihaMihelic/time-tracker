@@ -88,6 +88,26 @@ npm run dev
 - Nothing is cached or denormalized — every view recomputes from the raw rows,
   so any edit is reflected everywhere immediately.
 
+## Motion
+
+All motion is GSAP-driven and lives in `src/lib/motion.js`. Exactly five
+things move — everything else is intentionally static:
+
+1. Dashboard totals count up from 0 like a mechanical counter (~600ms,
+   slight day/week/month stagger) on first load only; browsing periods
+   updates instantly.
+2. Closing a shift snaps the live tick into the static number
+   (scale 1.05 → 1, 200ms, `back.out`).
+3. Selecting a calendar day gets a 150ms confirmation flash.
+4. A new rate row slides in from the top; soft-deleting greys the row
+   out before it moves to the deleted section.
+5. Buttons marked `data-press` scale to 0.97 while pressed.
+
+Every helper is a no-op under `prefers-reduced-motion` (the "on the
+clock" pulse also stops via CSS). A backend-free design preview of all
+of this is served at `/preview.html` when running `npm run dev`
+(static data, dev only — not part of the production build).
+
 ## Tests
 
 - `npm test` — vitest unit suite for the live math (`src/lib/calc.test.js`):

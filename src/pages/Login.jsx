@@ -70,6 +70,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={busy}
+              data-press
               className="mt-5 w-full bg-rust py-2.5 text-xs font-bold uppercase tracking-widest text-paper transition hover:bg-rust/90 disabled:opacity-60"
             >
               {busy ? "Signing in…" : "Sign in"}

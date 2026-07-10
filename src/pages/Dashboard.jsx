@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   addDays,
@@ -34,6 +34,14 @@ export default function Dashboard() {
 
   const loading = entries === null || rates === null;
 
+  // The count-up plays once, when the first data lands. Browsing periods
+  // or switching whose hours are shown updates numbers instantly.
+  const playedCountUp = useRef(false);
+  const countUp = !playedCountUp.current;
+  useEffect(() => {
+    if (!loading) playedCountUp.current = true;
+  }, [loading]);
+
   const [dayTotals, weekTotals, monthTotals] = useMemo(() => {
     if (loading) return [null, null, null];
     const weekEndISO = addDays(week, 6);
@@ -62,7 +70,8 @@ export default function Dashboard() {
         {!isViewingOther && (
           <Link
             to={`/calendar?date=${today}`}
-            className="bg-rust px-3.5 py-2 text-xs font-bold uppercase tracking-widest text-paper transition hover:bg-rust/90"
+            data-press
+            className="inline-block bg-rust px-3.5 py-2 text-xs font-bold uppercase tracking-widest text-paper transition hover:bg-rust/90"
           >
             + Log time
           </Link>
@@ -74,6 +83,7 @@ export default function Dashboard() {
         sublabel={day === today ? `Today · ${fmtDay(day)}` : fmtDay(day)}
         totals={dayTotals}
         loading={loading}
+        countUpDelay={countUp ? 0 : null}
         isCurrent={day === today}
         onPrev={() => setDay(addDays(day, -1))}
         onNext={() => setDay(addDays(day, 1))}
@@ -89,6 +99,7 @@ export default function Dashboard() {
         }
         totals={weekTotals}
         loading={loading}
+        countUpDelay={countUp ? 0.08 : null}
         isCurrent={week === weekStart(today)}
         onPrev={() => setWeek(addDays(week, -7))}
         onNext={() => setWeek(addDays(week, 7))}
@@ -104,6 +115,7 @@ export default function Dashboard() {
         }
         totals={monthTotals}
         loading={loading}
+        countUpDelay={countUp ? 0.16 : null}
         isCurrent={month === monthStart(today)}
         onPrev={() => setMonth(addMonths(month, -1))}
         onNext={() => setMonth(addMonths(month, 1))}

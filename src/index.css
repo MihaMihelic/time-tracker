@@ -57,19 +57,10 @@ body {
   animation: tick-pulse 1.5s ease-in-out infinite;
 }
 
-/* The one transition in the app: when a shift closes, the live tick
-   resolves into a static stamped number. */
-@keyframes shift-resolve {
-  from {
-    opacity: 0;
-    transform: translateY(2px);
-    color: var(--color-rust);
+/* All other motion (count-up, shift-close settle, selection flash, rate
+   rows, press feedback) is GSAP-driven — see src/lib/motion.js. */
+@media (prefers-reduced-motion: reduce) {
+  .tick-live {
+    animation: none;
   }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-.shift-resolve {
-  animation: shift-resolve 0.45s ease-out;
 }

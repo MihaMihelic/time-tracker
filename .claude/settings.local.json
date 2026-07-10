@@ -4,7 +4,13 @@
       "PowerShell(if \\(Test-Path .env\\) { Get-Content .env | ForEach-Object { \\($_ -split '='\\)[0] } } else { 'no .env' })",
       "PowerShell(npm install *)",
       "PowerShell(npm test *)",
-      "PowerShell(npm run *)"
+      "PowerShell(npm run *)",
+      "Skill(run)",
+      "PowerShell(try { \\(Get-Command chromium-cli -ErrorAction Stop\\).Source } catch { \"no chromium-cli\" }; $edge = \"C:\\\\Program Files \\(x86\\)\\\\Microsoft\\\\Edge\\\\Application\\\\msedge.exe\"; if \\(Test-Path $edge\\) { \"edge found\" } else { $edge2 = \"C:\\\\Program Files\\\\Microsoft\\\\Edge\\\\Application\\\\msedge.exe\"; if \\(Test-Path $edge2\\) { \"edge found \\(64\\)\" } else { \"no edge\" } }; try { \\(Get-Command chrome -ErrorAction Stop\\).Source } catch { $c=\"C:\\\\Program Files\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe\"; if \\(Test-Path $c\\) {\"chrome found\"} else {\"no chrome\"} })",
+      "Bash(timeout 30 bash -c 'until curl -sf http://localhost:5173/preview.html >/dev/null 2>&1; do sleep 1; done')",
+      "PowerShell(Get-Item *)",
+      "PowerShell(Out-Null *)",
+      "PowerShell(Get-Process *)"
     ]
   }
 }

@@ -1,8 +1,13 @@
+import { useEffect, useRef } from "react";
 import { fmtDuration, fmtMoney } from "../lib/calc";
+import { countUp } from "../lib/motion";
 
 // One timesheet block (day / week / month). Totals arrive already
 // computed live from the freshly fetched entries — never stored anywhere.
 // The numbers are the content: big stamped figures, hairline rules.
+// On the dashboard's first load (countUpDelay != null) the figures tick
+// up from zero like a mechanical counter; after that they update
+// instantly — browsing periods stays quiet.
 export default function PeriodCard({
   title,
   sublabel,
@@ -12,7 +17,27 @@ export default function PeriodCard({
   onNext,
   onReset,
   loading,
+  countUpDelay = null,
 }) {
+  const minutesRef = useRef(null);
+  const moneyRef = useRef(null);
+  const played = useRef(false);
+
+  useEffect(() => {
+    if (loading || countUpDelay == null || played.current) return;
+    played.current = true;
+    const tween = countUp({
+      minutes: totals.minutes,
+      earnings: totals.earnings,
+      delay: countUpDelay,
+      render: (m, e) => {
+        if (minutesRef.current) minutesRef.current.textContent = fmtDuration(m);
+        if (moneyRef.current) moneyRef.current.textContent = fmtMoney(e);
+      },
+    });
+    return () => tween?.kill();
+  }, [loading, countUpDelay, totals]);
+
   return (
     <section className="border border-line bg-sheet">
       <div className="flex items-center justify-between border-b border-line px-4 py-2.5">
@@ -35,6 +60,7 @@ export default function PeriodCard({
         <div className="flex divide-x divide-line border border-line">
           <button
             onClick={onPrev}
+            data-press
             aria-label={`Previous ${title.toLowerCase()}`}
             className="flex h-8 w-8 items-center justify-center text-steel transition hover:bg-paper"
           >
@@ -42,6 +68,7 @@ export default function PeriodCard({
           </button>
           <button
             onClick={onNext}
+            data-press
             aria-label={`Next ${title.toLowerCase()}`}
             className="flex h-8 w-8 items-center justify-center text-steel transition hover:bg-paper"
           >
@@ -56,7 +83,7 @@ export default function PeriodCard({
         ) : (
           <>
             <div>
-              <p className="font-display text-4xl font-bold text-ink">
+              <p ref={minutesRef} className="font-display text-4xl font-bold text-ink">
                 {fmtDuration(totals.minutes)}
               </p>
               <p className="mt-1 text-[11px] font-medium uppercase tracking-widest text-steel">
@@ -64,7 +91,7 @@ export default function PeriodCard({
               </p>
             </div>
             <div className="text-right">
-              <p className="font-display text-3xl font-semibold text-brass">
+              <p ref={moneyRef} className="font-display text-3xl font-semibold text-brass">
                 {fmtMoney(totals.earnings)}
               </p>
               <p className="mt-1 text-[11px] font-medium uppercase tracking-widest text-steel">

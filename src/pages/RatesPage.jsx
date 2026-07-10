@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { fmtDayLong, todayISO } from "../lib/dates";
 import { fmtMoney, rateRowFor } from "../lib/calc";
 import { useRates } from "../lib/data";
 import { PARTNER_LABEL, useView } from "../lib/view";
+import { fadeOutRow, restoreRow, rowEnter } from "../lib/motion";
 
 const inputCls =
   "mt-1 w-full border border-line bg-sheet px-2.5 py-2 text-sm text-ink outline-none transition focus:border-steel";
@@ -24,6 +25,22 @@ export default function RatesPage() {
   const currentRate = currentRow ? Number(currentRow.rate) : null;
   const activeRates = (rates ?? []).filter((r) => !r.is_deleted);
   const deletedRates = (rates ?? []).filter((r) => r.is_deleted);
+
+  // A row id that wasn't in the previous fetch slides in from the top of
+  // the list; everything already on screen stays put.
+  const historyRef = useRef(null);
+  const knownIds = useRef(null);
+  useEffect(() => {
+    if (rates === null) return;
+    if (knownIds.current) {
+      for (const row of rates) {
+        if (!knownIds.current.has(row.id)) {
+          rowEnter(historyRef.current?.querySelector(`[data-rate="${row.id}"]`));
+        }
+      }
+    }
+    knownIds.current = new Set(rates.map((r) => r.id));
+  }, [rates]);
 
   const save = async (e) => {
     e.preventDefault();
@@ -56,12 +73,18 @@ export default function RatesPage() {
       ? `This is your only listed rate — the list will look empty, but the rate keeps pricing entries until you add a newer one.\n\nHide the ${fmtMoney(Number(row.rate))}/h rate effective from ${row.effective_from}?`
       : `Delete the ${fmtMoney(Number(row.rate))}/h rate effective from ${row.effective_from}?\n\nThis only hides it from the list — no earnings change, and it keeps applying until a newer rate takes over.`;
     if (!window.confirm(msg)) return;
+    // Grey the row out first so the state change is visible, then mutate;
+    // the refetch re-renders it in the "deleted" section.
+    const node = historyRef.current?.querySelector(`[data-rate="${row.id}"]`);
+    await fadeOutRow(node);
     const { error: err } = await supabase
       .from("rate_history")
       .update({ is_deleted: true })
       .eq("id", row.id);
-    if (err) setError(err.message);
-    else refresh();
+    if (err) {
+      restoreRow(node);
+      setError(err.message);
+    } else refresh();
   };
 
   const badge = (text) => (
@@ -140,6 +163,7 @@ export default function RatesPage() {
           <button
             type="submit"
             disabled={busy}
+            data-press
             className="mt-4 bg-rust px-4 py-2 text-xs font-bold uppercase tracking-widest text-paper transition hover:bg-rust/90 disabled:opacity-60"
           >
             {busy ? "Saving…" : "Save rate"}
@@ -148,7 +172,7 @@ export default function RatesPage() {
       )}
 
       {/* history */}
-      <section className="border border-line bg-sheet">
+      <section ref={historyRef} className="border border-line bg-sheet">
         <h2 className="border-b border-line px-4 py-2.5 text-[11px] font-semibold uppercase tracking-widest text-steel">
           Rate history
         </h2>
@@ -165,6 +189,7 @@ export default function RatesPage() {
               return (
                 <li
                   key={row.id}
+                  data-rate={row.id}
                   className="flex items-center justify-between gap-3 px-4 py-3"
                 >
                   <div>
@@ -180,6 +205,7 @@ export default function RatesPage() {
                   {!readOnly && (
                     <button
                       onClick={() => remove(row)}
+                      data-press
                       className="shrink-0 text-[11px] font-semibold uppercase tracking-widest text-steel transition hover:text-ink"
                     >
                       Delete
@@ -198,7 +224,7 @@ export default function RatesPage() {
             </h3>
             <ul className="divide-y divide-line opacity-50">
               {deletedRates.map((row) => (
-                <li key={row.id} className="px-4 py-3">
+                <li key={row.id} data-rate={row.id} className="px-4 py-3">
                   <p className="font-display text-sm font-semibold text-ink">
                     <span className="line-through">
                       {fmtMoney(Number(row.rate))}/h

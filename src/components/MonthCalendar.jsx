@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import {
   addDays,
   addMonths,
@@ -8,6 +9,7 @@ import {
   weekStart,
 } from "../lib/dates";
 import { entryMinutes } from "../lib/calc";
+import { selectFlash } from "../lib/motion";
 
 const DOW = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -25,6 +27,18 @@ export default function MonthCalendar({
   const today = todayISO();
   const gridStart = weekStart(monthStart(month));
   const gridEndWeek = weekStart(monthEnd(month));
+
+  // Quick highlight on the newly selected cell — just enough to confirm
+  // the tap registered. Skipped on first paint.
+  const gridRef = useRef(null);
+  const mounted = useRef(false);
+  useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true;
+      return;
+    }
+    selectFlash(gridRef.current?.querySelector(`[data-date="${selected}"]`));
+  }, [selected]);
 
   // Build all visible days: from the Monday before the 1st through the
   // Sunday after the last day.
@@ -67,6 +81,7 @@ export default function MonthCalendar({
         <div className="flex divide-x divide-line border border-line">
           <button
             onClick={() => onMonthChange(addMonths(month, -1))}
+            data-press
             aria-label="Previous month"
             className="flex h-8 w-8 items-center justify-center text-steel transition hover:bg-paper"
           >
@@ -77,12 +92,14 @@ export default function MonthCalendar({
               onMonthChange(monthStart(today));
               onSelect(today);
             }}
+            data-press
             className="px-2.5 text-[11px] font-semibold uppercase tracking-widest text-steel transition hover:bg-paper"
           >
             Today
           </button>
           <button
             onClick={() => onMonthChange(addMonths(month, 1))}
+            data-press
             aria-label="Next month"
             className="flex h-8 w-8 items-center justify-center text-steel transition hover:bg-paper"
           >
@@ -102,7 +119,7 @@ export default function MonthCalendar({
             </div>
           ))}
         </div>
-        <div className="grid grid-cols-7 gap-px border border-line bg-line">
+        <div ref={gridRef} className="grid grid-cols-7 gap-px border border-line bg-line">
           {days.map((iso) => {
             const inMonth = iso.slice(0, 7) === month.slice(0, 7);
             const isSelected = iso === selected;
@@ -111,6 +128,7 @@ export default function MonthCalendar({
             return (
               <button
                 key={iso}
+                data-date={iso}
                 onClick={() => {
                   onSelect(iso);
                   if (!inMonth) onMonthChange(monthStart(iso));

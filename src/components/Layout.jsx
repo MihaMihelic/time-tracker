@@ -68,10 +68,10 @@ function ViewToggle() {
     <div className="border-b border-line bg-paper">
       <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-2">
         <div className="inline-flex divide-x divide-line border border-line">
-          <button className={btn(!isViewingOther)} onClick={viewSelf}>
+          <button data-press className={btn(!isViewingOther)} onClick={viewSelf}>
             My hours
           </button>
-          <button className={btn(isViewingOther)} onClick={viewPartner}>
+          <button data-press className={btn(isViewingOther)} onClick={viewPartner}>
             {PARTNER_LABEL}&rsquo;s hours
           </button>
         </div>
@@ -117,6 +117,7 @@ export default function Layout() {
 
           <button
             onClick={signOut}
+            data-press
             className="text-xs font-medium uppercase tracking-widest text-paper/60 transition hover:text-paper"
           >
             Sign out

@@ -10,6 +10,7 @@ import {
   totals,
 } from "../lib/calc";
 import { useView } from "../lib/view";
+import { settle } from "../lib/motion";
 
 const inputCls =
   "mt-1 w-full border border-line bg-sheet px-2.5 py-2 text-sm text-ink outline-none transition focus:border-steel";
@@ -28,8 +29,8 @@ export default function DayPanel({ date, entries, rates, onChange }) {
   const [busy, setBusy] = useState(false);
 
   // Track which entries were on the clock last render so a shift that just
-  // closed can resolve its live tick into a static number (the app's one
-  // piece of motion).
+  // closed can settle its live tick into a static number (GSAP snap).
+  const listRef = useRef(null);
   const prevOpen = useRef(new Set());
   const justClosed = new Set(
     entries
@@ -37,10 +38,15 @@ export default function DayPanel({ date, entries, rates, onChange }) {
       .map((e) => e.id)
   );
   useEffect(() => {
+    for (const id of justClosed) {
+      listRef.current
+        ?.querySelectorAll(`[data-entry="${id}"] .js-resolve`)
+        .forEach(settle);
+    }
     prevOpen.current = new Set(
       entries.filter((e) => !e.end_time).map((e) => e.id)
     );
-  }, [entries]);
+  }, [entries]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Close the form when switching days.
   useEffect(() => {
@@ -114,6 +120,7 @@ export default function DayPanel({ date, entries, rates, onChange }) {
         {!readOnly && editingId === null && (
           <button
             onClick={openAdd}
+            data-press
             className="shrink-0 bg-rust px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-paper transition hover:bg-rust/90"
           >
             + Add entry
@@ -122,7 +129,7 @@ export default function DayPanel({ date, entries, rates, onChange }) {
       </div>
 
       {/* entry list */}
-      <ul className="divide-y divide-line">
+      <ul ref={listRef} className="divide-y divide-line">
         {entries.length === 0 && editingId === null && (
           <li className="px-4 py-6 text-center text-sm text-steel">
             No entries on this day.
@@ -131,17 +138,17 @@ export default function DayPanel({ date, entries, rates, onChange }) {
         {entries.map((entry) => {
           const min = entryMinutes(entry);
           const money = entryEarnings(entry, rates);
-          const resolved = justClosed.has(entry.id);
           return (
             <li
               key={entry.id}
+              data-entry={entry.id}
               className="flex items-center justify-between gap-3 px-4 py-3"
             >
               <div>
                 <p className="font-display text-sm font-semibold text-ink">
                   {fmtTime(entry.start_time)} –{" "}
                   {entry.end_time ? (
-                    <span className={resolved ? "shift-resolve inline-block" : ""}>
+                    <span className="js-resolve inline-block">
                       {fmtTime(entry.end_time)}
                     </span>
                   ) : (
@@ -151,11 +158,7 @@ export default function DayPanel({ date, entries, rates, onChange }) {
                     </span>
                   )}
                 </p>
-                <p
-                  className={`mt-0.5 text-xs text-steel ${
-                    resolved ? "shift-resolve" : ""
-                  }`}
-                >
+                <p className="js-resolve mt-0.5 text-xs text-steel">
                   {min != null ? fmtDuration(min) : "—"}
                   {money != null && (
                     <span className="ml-2 font-semibold text-brass">
@@ -168,12 +171,14 @@ export default function DayPanel({ date, entries, rates, onChange }) {
                 <div className="flex shrink-0 gap-3">
                   <button
                     onClick={() => openEdit(entry)}
+                    data-press
                     className="text-[11px] font-semibold uppercase tracking-widest text-steel transition hover:text-ink"
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => remove(entry)}
+                    data-press
                     className="text-[11px] font-semibold uppercase tracking-widest text-steel transition hover:text-ink"
                   >
                     Delete
@@ -225,6 +230,7 @@ export default function DayPanel({ date, entries, rates, onChange }) {
             <button
               type="submit"
               disabled={busy}
+              data-press
               className="bg-rust px-4 py-2 text-xs font-bold uppercase tracking-widest text-paper transition hover:bg-rust/90 disabled:opacity-60"
             >
               {busy ? "Saving…" : "Save"}
@@ -232,6 +238,7 @@ export default function DayPanel({ date, entries, rates, onChange }) {
             <button
               type="button"
               onClick={() => setEditingId(null)}
+              data-press
               className="px-4 py-2 text-xs font-semibold uppercase tracking-widest text-steel transition hover:text-ink"
             >
               Cancel
