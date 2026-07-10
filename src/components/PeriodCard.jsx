@@ -103,7 +103,7 @@ export default function PeriodCard({
       </div>
 
       {!loading && totals.openCount > 0 && (
-        <p className="flex items-center gap-2 border-t border-line px-4 py-2 text-xs font-semibold uppercase tracking-wider text-rust">
+        <p className="flex items-center gap-2 border-t border-line px-4 py-2 text-xs font-medium uppercase tracking-wider text-steel">
           <span className="tick-live" />
           {totals.openCount} shift{totals.openCount > 1 ? "s" : ""} on the
           clock — not counted yet

@@ -61,7 +61,7 @@ function ViewToggle() {
 
   const btn = (active) =>
     `px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest transition ${
-      active ? "bg-ink text-paper" : "text-steel hover:bg-sheet"
+      active ? "bg-accent text-paper" : "text-steel hover:bg-sheet"
     }`;
 
   return (
@@ -142,7 +142,7 @@ export default function Layout() {
               end={t.to === "/"}
               className={({ isActive }) =>
                 `flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[10px] font-semibold uppercase tracking-wider transition ${
-                  isActive ? "text-ink" : "text-steel/70"
+                  isActive ? "text-accent" : "text-steel/70"
                 }`
               }
             >

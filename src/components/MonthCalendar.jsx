@@ -15,7 +15,7 @@ const DOW = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 // Month grid, Monday-first (matches the ISO week used for totals).
 // Styled like a physical punch card: tick strips top and bottom, hairline
-// rules between cells, stamped hour figures, a pulsing rust tick on days
+// rules between cells, stamped hour figures, a pulsing accent tick on days
 // with a shift still on the clock.
 export default function MonthCalendar({
   month, // "YYYY-MM-01"
@@ -133,12 +133,12 @@ export default function MonthCalendar({
                   onSelect(iso);
                   if (!inMonth) onMonthChange(monthStart(iso));
                 }}
-                className={`relative flex aspect-square flex-col items-start justify-between p-1.5 text-left transition ${
+                className={`relative flex aspect-square flex-col items-start justify-between p-1.5 text-left transition md:aspect-auto md:h-[76px] ${
                   isSelected
-                    ? "bg-steel text-paper"
+                    ? "bg-accent text-paper"
                     : inMonth
                       ? "bg-sheet text-ink hover:bg-paper"
-                      : "bg-sheet text-ink/30 hover:bg-paper"
+                      : "void-cell bg-sheet text-ink/35 hover:bg-paper"
                 }`}
               >
                 <span
@@ -155,7 +155,7 @@ export default function MonthCalendar({
                 <span className="flex items-center gap-1">
                   {info?.label && (
                     <span
-                      className={`font-display text-[11px] font-semibold leading-none ${
+                      className={`font-display text-xs font-semibold leading-none ${
                         isSelected ? "text-paper" : "text-ink"
                       }`}
                     >

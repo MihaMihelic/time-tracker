@@ -62,7 +62,7 @@ export default function Login() {
             </label>
 
             {error && (
-              <p className="mt-3 border border-rust/40 bg-paper px-3 py-2 text-xs text-rust">
+              <p className="mt-3 border border-accent/40 bg-paper px-3 py-2 text-xs text-accent">
                 {error}
               </p>
             )}
@@ -71,7 +71,7 @@ export default function Login() {
               type="submit"
               disabled={busy}
               data-press
-              className="mt-5 w-full bg-rust py-2.5 text-xs font-bold uppercase tracking-widest text-paper transition hover:bg-rust/90 disabled:opacity-60"
+              className="mt-5 w-full bg-accent py-2.5 text-xs font-bold uppercase tracking-widest text-paper transition hover:bg-accent/90 disabled:opacity-60"
             >
               {busy ? "Signing in…" : "Sign in"}
             </button>

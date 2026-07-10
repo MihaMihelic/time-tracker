@@ -121,7 +121,7 @@ export default function DayPanel({ date, entries, rates, onChange }) {
           <button
             onClick={openAdd}
             data-press
-            className="shrink-0 bg-rust px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-paper transition hover:bg-rust/90"
+            className="shrink-0 bg-accent px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-paper transition hover:bg-accent/90"
           >
             + Add entry
           </button>
@@ -152,7 +152,7 @@ export default function DayPanel({ date, entries, rates, onChange }) {
                       {fmtTime(entry.end_time)}
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-rust">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-steel">
                       <span className="tick-live" />
                       On the clock
                     </span>
@@ -222,7 +222,7 @@ export default function DayPanel({ date, entries, rates, onChange }) {
             later by editing the entry.
           </p>
           {error && (
-            <p className="mt-2 border border-rust/40 bg-sheet px-3 py-2 text-xs text-rust">
+            <p className="mt-2 border border-accent/40 bg-sheet px-3 py-2 text-xs text-accent">
               {error}
             </p>
           )}
@@ -231,7 +231,7 @@ export default function DayPanel({ date, entries, rates, onChange }) {
               type="submit"
               disabled={busy}
               data-press
-              className="bg-rust px-4 py-2 text-xs font-bold uppercase tracking-widest text-paper transition hover:bg-rust/90 disabled:opacity-60"
+              className="bg-accent px-4 py-2 text-xs font-bold uppercase tracking-widest text-paper transition hover:bg-accent/90 disabled:opacity-60"
             >
               {busy ? "Saving…" : "Save"}
             </button>

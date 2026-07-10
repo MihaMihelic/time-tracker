@@ -71,7 +71,7 @@ export default function Dashboard() {
           <Link
             to={`/calendar?date=${today}`}
             data-press
-            className="inline-block bg-rust px-3.5 py-2 text-xs font-bold uppercase tracking-widest text-paper transition hover:bg-rust/90"
+            className="inline-block bg-accent px-3.5 py-2 text-xs font-bold uppercase tracking-widest text-paper transition hover:bg-accent/90"
           >
             + Log time
           </Link>

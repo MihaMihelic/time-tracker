@@ -156,7 +156,7 @@ export default function RatesPage() {
             </label>
           </div>
           {error && (
-            <p className="mt-3 border border-rust/40 bg-paper px-3 py-2 text-xs text-rust">
+            <p className="mt-3 border border-accent/40 bg-paper px-3 py-2 text-xs text-accent">
               {error}
             </p>
           )}
@@ -164,7 +164,7 @@ export default function RatesPage() {
             type="submit"
             disabled={busy}
             data-press
-            className="mt-4 bg-rust px-4 py-2 text-xs font-bold uppercase tracking-widest text-paper transition hover:bg-rust/90 disabled:opacity-60"
+            className="mt-4 bg-accent px-4 py-2 text-xs font-bold uppercase tracking-widest text-paper transition hover:bg-accent/90 disabled:opacity-60"
           >
             {busy ? "Saving…" : "Save rate"}
           </button>
