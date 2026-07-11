@@ -12,16 +12,19 @@ are never stored on entries; each entry always resolves to the rate that was
 effective on its `work_date`.
 
 **Shared visibility:** the `viewers` table grants one user *read-only* access
-to another user's entries and rates. A viewer gets a "My hours / Partner's
+to another user's entries and rates. A viewer gets a "My hours / Buddy's
 hours" toggle and sees the owner's Dashboard/Calendar/Rates with all editing
 controls hidden; RLS blocks writes server-side regardless. Grants are managed
 only from the SQL editor — there are no write policies on `viewers`.
 
 **Soft-deleted rates:** deleting a rate sets `is_deleted = true` instead of
-removing the row. The flag only controls the Rates page list (deleted rows
-are greyed out in their own section) — it never participates in earnings.
-Every entry, past or future, resolves purely on the latest
-`effective_from <= work_date`; a new rate takes over simply by having a
+removing the row. Deleted rows are hidden from the Rates page by default
+(behind a "Show deleted rates" toggle), and the **Current rate** card only
+considers active rows — so after deleting your only rate it reads "Not set"
+and warns that new entries won't have a rate until you add another. Entry
+*pricing* is separate and never changes on delete: every entry, past or
+future, resolves purely on the latest `effective_from <= work_date`
+regardless of deletion status; a new rate takes over simply by having a
 later effective date.
 
 ---
@@ -100,7 +103,7 @@ things move — everything else is intentionally static:
    (scale 1.05 → 1, 200ms, `back.out`).
 3. Selecting a calendar day gets a 150ms confirmation flash.
 4. A new rate row slides in from the top; soft-deleting greys the row
-   out before it moves to the deleted section.
+   out before it moves to the (hidden by default) deleted list.
 5. Buttons marked `data-press` scale to 0.97 while pressed.
 
 Every helper is a no-op under `prefers-reduced-motion` (the "on the

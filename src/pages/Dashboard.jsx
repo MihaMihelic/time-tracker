@@ -63,15 +63,15 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between border-b-2 border-ink pb-2">
-        <h1 className="font-display text-xl font-bold uppercase tracking-wider text-ink">
+      <div className="flex items-center justify-between pb-1">
+        <h1 className="text-xl font-bold text-ink">
           {isViewingOther ? `${PARTNER_LABEL}’s hours` : "Timesheet"}
         </h1>
         {!isViewingOther && (
           <Link
             to={`/calendar?date=${today}`}
             data-press
-            className="inline-block bg-accent px-3.5 py-2 text-xs font-bold uppercase tracking-widest text-paper transition hover:bg-accent/90"
+            className="btn-glow inline-block rounded-lg bg-violet px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-violet/90"
           >
             + Log time
           </Link>

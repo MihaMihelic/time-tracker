@@ -7,7 +7,7 @@ import { PARTNER_LABEL, useView } from "../lib/view";
 import { fadeOutRow, restoreRow, rowEnter } from "../lib/motion";
 
 const inputCls =
-  "mt-1 w-full border border-line bg-sheet px-2.5 py-2 text-sm text-ink outline-none transition focus:border-steel";
+  "mt-1 w-full rounded-lg border-[1.5px] border-line bg-surface px-3 py-2 text-sm text-ink outline-none transition placeholder:text-ink-muted focus:border-violet";
 
 export default function RatesPage() {
   const { isViewingOther: readOnly } = useView();
@@ -16,15 +16,21 @@ export default function RatesPage() {
   const [effectiveFrom, setEffectiveFrom] = useState(todayISO());
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [showDeleted, setShowDeleted] = useState(false);
 
   const today = todayISO();
-  // Rate resolution ignores is_deleted entirely — the row in force today
-  // (and what the big number shows) can be a deleted one. Deletion only
-  // controls which section of the list a row appears in.
-  const currentRow = rates ? rateRowFor(rates, today) : null;
-  const currentRate = currentRow ? Number(currentRow.rate) : null;
   const activeRates = (rates ?? []).filter((r) => !r.is_deleted);
   const deletedRates = (rates ?? []).filter((r) => r.is_deleted);
+
+  // The CURRENT rate (the big number, and what new entries are quoted at)
+  // considers only ACTIVE rows — soft-deleted rates are excluded here.
+  // Entry pricing is different: rateFor over the full history ignores
+  // is_deleted entirely, so past earnings never change (see calc.js).
+  const currentRow = rates ? rateRowFor(activeRates, today) : null;
+  const currentRate = currentRow ? Number(currentRow.rate) : null;
+  // The row actually pricing today's entries, deleted or not — used only
+  // to flag a deleted row that is still in force for historical pricing.
+  const pricingRow = rates ? rateRowFor(rates, today) : null;
 
   // A row id that wasn't in the previous fetch slides in from the top of
   // the list; everything already on screen stays put.
@@ -64,17 +70,16 @@ export default function RatesPage() {
     refresh();
   };
 
-  // Soft delete only hides the row from this list. Pricing is untouched:
-  // every entry, past or future, resolves exactly as before until a rate
-  // with a later effective_from takes over.
+  // Soft delete only hides the row from this list. Historical pricing is
+  // untouched: every existing entry resolves exactly as before.
   const remove = async (row) => {
     const lastActive = activeRates.length === 1;
     const msg = lastActive
-      ? `This is your only listed rate — the list will look empty, but the rate keeps pricing entries until you add a newer one.\n\nHide the ${fmtMoney(Number(row.rate))}/h rate effective from ${row.effective_from}?`
-      : `Delete the ${fmtMoney(Number(row.rate))}/h rate effective from ${row.effective_from}?\n\nThis only hides it from the list — no earnings change, and it keeps applying until a newer rate takes over.`;
+      ? `This is your only active rate — new entries won't have a rate until you add another.\n\nDelete the ${fmtMoney(Number(row.rate))}/h rate effective from ${row.effective_from}?`
+      : `Delete the ${fmtMoney(Number(row.rate))}/h rate effective from ${row.effective_from}?\n\nThis only hides it from the list — past earnings never change.`;
     if (!window.confirm(msg)) return;
     // Grey the row out first so the state change is visible, then mutate;
-    // the refetch re-renders it in the "deleted" section.
+    // the refetch re-renders the list without it.
     const node = historyRef.current?.querySelector(`[data-rate="${row.id}"]`);
     await fadeOutRow(node);
     const { error: err } = await supabase
@@ -87,32 +92,38 @@ export default function RatesPage() {
     } else refresh();
   };
 
-  const badge = (text) => (
-    <span className="ml-2 border border-steel px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-steel">
+  const badge = (text, violet = false) => (
+    <span
+      className={`ml-2 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+        violet ? "border-violet/40 text-violet" : "border-line text-ink-muted"
+      }`}
+    >
       {text}
     </span>
   );
 
   return (
     <div className="space-y-4">
-      <h1 className="border-b-2 border-ink pb-2 font-display text-xl font-bold uppercase tracking-wider text-ink">
+      <h1 className="pb-1 text-xl font-bold text-ink">
         {readOnly ? `${PARTNER_LABEL}’s rate` : "Hourly rate"}
       </h1>
 
       {/* current rate */}
-      <section className="border border-line bg-sheet">
-        <div className="ticks border-b border-line" />
+      <section className="rounded-xl bg-surface shadow-card">
         <div className="px-4 py-4">
-          <h2 className="text-[11px] font-semibold uppercase tracking-widest text-steel">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
             Current rate
           </h2>
-          <p className="mt-1 font-display text-4xl font-bold text-ink">
+          <p className="mt-1.5 text-[2rem] font-bold leading-none text-brass">
             {currentRate != null ? `${fmtMoney(currentRate)}/h` : "Not set"}
           </p>
-          {currentRate == null && rates !== null && !readOnly && (
-            <p className="mt-1 text-sm text-steel">
-              Add your first rate below — entries have no earnings until a
-              rate covers their date.
+          {currentRate == null && rates !== null && (
+            <p className="mt-2 text-sm text-ink-muted">
+              {pricingRow
+                ? "No active rate — a deleted rate still prices existing entries, but new entries won’t have a rate until you add one."
+                : readOnly
+                  ? "No rate set yet."
+                  : "Add your first rate below — entries have no earnings until a rate covers their date."}
             </p>
           )}
         </div>
@@ -120,17 +131,17 @@ export default function RatesPage() {
 
       {/* new rate form */}
       {!readOnly && (
-        <form onSubmit={save} className="border border-line bg-sheet p-4">
-          <h2 className="text-[11px] font-semibold uppercase tracking-widest text-steel">
+        <form onSubmit={save} className="rounded-xl bg-surface p-4 shadow-card">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
             Set a new rate
           </h2>
-          <p className="mt-1 text-xs leading-relaxed text-steel">
+          <p className="mt-1 text-xs leading-relaxed text-ink-muted">
             Adds a row to your rate history. Every entry is always paid at
             the rate that was effective on its work date — changing your rate
             today never changes past earnings.
           </p>
           <div className="mt-4 grid grid-cols-2 gap-3">
-            <label className="block text-xs font-medium text-ink/80">
+            <label className="block text-xs font-medium text-ink">
               Rate ($ / hour)
               <input
                 type="number"
@@ -144,7 +155,7 @@ export default function RatesPage() {
                 className={inputCls}
               />
             </label>
-            <label className="block text-xs font-medium text-ink/80">
+            <label className="block text-xs font-medium text-ink">
               Effective from
               <input
                 type="date"
@@ -156,7 +167,7 @@ export default function RatesPage() {
             </label>
           </div>
           {error && (
-            <p className="mt-3 border border-accent/40 bg-paper px-3 py-2 text-xs text-accent">
+            <p className="mt-3 rounded-lg border-[1.5px] border-danger/40 bg-surface px-3 py-2 text-xs text-danger">
               {error}
             </p>
           )}
@@ -164,7 +175,7 @@ export default function RatesPage() {
             type="submit"
             disabled={busy}
             data-press
-            className="mt-4 bg-accent px-4 py-2 text-xs font-bold uppercase tracking-widest text-paper transition hover:bg-accent/90 disabled:opacity-60"
+            className="mt-4 rounded-lg bg-violet px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-violet/90 disabled:opacity-60"
           >
             {busy ? "Saving…" : "Save rate"}
           </button>
@@ -172,14 +183,14 @@ export default function RatesPage() {
       )}
 
       {/* history */}
-      <section ref={historyRef} className="border border-line bg-sheet">
-        <h2 className="border-b border-line px-4 py-2.5 text-[11px] font-semibold uppercase tracking-widest text-steel">
+      <section ref={historyRef} className="rounded-xl bg-surface shadow-card">
+        <h2 className="border-b border-line px-4 py-3 text-xs font-semibold uppercase tracking-wide text-ink-muted">
           Rate history
         </h2>
         {rates === null ? (
-          <div className="m-4 h-16 animate-pulse bg-line/40" />
+          <div className="m-4 h-16 animate-pulse rounded-lg bg-line/40" />
         ) : activeRates.length === 0 ? (
-          <p className="px-4 py-6 text-center text-sm text-steel">
+          <p className="px-4 py-6 text-center text-sm text-ink-muted">
             No active rates.
           </p>
         ) : (
@@ -193,12 +204,12 @@ export default function RatesPage() {
                   className="flex items-center justify-between gap-3 px-4 py-3"
                 >
                   <div>
-                    <p className="font-display text-sm font-semibold text-ink">
+                    <p className="text-sm font-bold text-brass">
                       {fmtMoney(Number(row.rate))}/h
-                      {active && badge("active")}
+                      {active && badge("active", true)}
                       {row.effective_from > today && badge("upcoming")}
                     </p>
-                    <p className="mt-0.5 text-xs text-steel">
+                    <p className="mt-0.5 text-xs text-ink-muted">
                       from {fmtDayLong(row.effective_from)}
                     </p>
                   </div>
@@ -206,7 +217,7 @@ export default function RatesPage() {
                     <button
                       onClick={() => remove(row)}
                       data-press
-                      className="shrink-0 text-[11px] font-semibold uppercase tracking-widest text-steel transition hover:text-ink"
+                      className="shrink-0 rounded-lg border-[1.5px] border-danger px-3 py-1.5 text-xs font-semibold text-danger transition hover:bg-danger/5"
                     >
                       Delete
                     </button>
@@ -217,27 +228,42 @@ export default function RatesPage() {
           </ul>
         )}
 
+        {/* Soft-deleted rows are hidden by default. */}
         {deletedRates.length > 0 && (
-          <>
-            <h3 className="border-y border-line px-4 py-2 text-[11px] font-semibold uppercase tracking-widest text-steel/60">
-              Deleted — hidden only; pricing is unaffected
-            </h3>
-            <ul className="divide-y divide-line opacity-50">
-              {deletedRates.map((row) => (
-                <li key={row.id} data-rate={row.id} className="px-4 py-3">
-                  <p className="font-display text-sm font-semibold text-ink">
-                    <span className="line-through">
-                      {fmtMoney(Number(row.rate))}/h
-                    </span>
-                    {currentRow?.id === row.id && badge("still in force")}
-                  </p>
-                  <p className="mt-0.5 text-xs text-steel">
-                    from {fmtDayLong(row.effective_from)}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </>
+          <div className="border-t border-line">
+            <button
+              onClick={() => setShowDeleted((v) => !v)}
+              data-press
+              className="w-full px-4 py-2.5 text-left text-xs font-semibold text-ink-muted transition hover:text-ink"
+            >
+              {showDeleted
+                ? "Hide deleted rates"
+                : `Show deleted rates (${deletedRates.length})`}
+            </button>
+            {showDeleted && (
+              <>
+                <p className="border-t border-line px-4 py-2 text-[11px] text-ink-muted">
+                  Deleted rates are hidden only — past earnings are unaffected.
+                </p>
+                <ul className="divide-y divide-line opacity-50">
+                  {deletedRates.map((row) => (
+                    <li key={row.id} data-rate={row.id} className="px-4 py-3">
+                      <p className="text-sm font-bold text-brass">
+                        <span className="line-through">
+                          {fmtMoney(Number(row.rate))}/h
+                        </span>
+                        {pricingRow?.id === row.id &&
+                          badge("still pricing entries")}
+                      </p>
+                      <p className="mt-0.5 text-xs text-ink-muted">
+                        from {fmtDayLong(row.effective_from)}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
         )}
       </section>
     </div>

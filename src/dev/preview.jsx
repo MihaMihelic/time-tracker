@@ -50,38 +50,43 @@ const noop = () => {};
 function Preview() {
   return (
     <ViewProvider userId="preview-user">
-      <div className="min-h-screen bg-paper pb-8 text-ink">
-        <header className="bg-steel text-paper">
+      <div className="theme-anim theme-dark isolate min-h-screen bg-paper pb-8 text-ink">
+        <div
+          aria-hidden
+          className="pointer-events-none fixed inset-0 -z-10"
+          style={{
+            background:
+              "radial-gradient(ellipse 85% 70% at 50% 30%, #1a0b2e 0%, #0a0510 100%)",
+          }}
+        />
+        <header className="border-b border-line bg-surface">
           <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4">
-            <span className="font-display text-base font-bold uppercase tracking-[0.25em]">
+            <span className="text-base font-bold tracking-tight text-ink">
               TimeTrack
             </span>
-            <nav className="flex items-center gap-5">
-              <span className="border-b-2 border-paper pb-0.5 text-xs font-semibold uppercase tracking-widest">
+            <nav className="flex items-center gap-1">
+              <span className="btn-glow rounded-full bg-violet px-3.5 py-1.5 text-xs font-semibold text-white">
                 Dashboard
               </span>
-              <span className="text-xs font-semibold uppercase tracking-widest text-paper/60">
+              <span className="rounded-full px-3.5 py-1.5 text-xs font-semibold text-ink-muted">
                 Calendar
               </span>
-              <span className="text-xs font-semibold uppercase tracking-widest text-paper/60">
+              <span className="rounded-full px-3.5 py-1.5 text-xs font-semibold text-ink-muted">
                 Rates
               </span>
             </nav>
-            <span className="text-xs font-medium uppercase tracking-widest text-paper/60">
+            <span className="text-xs font-semibold text-ink-muted">
               Sign out
             </span>
           </div>
-          <div className="ticks bg-paper" />
         </header>
 
         <main className="mx-auto max-w-3xl space-y-4 px-4 py-6">
-          <div className="flex items-center justify-between border-b-2 border-ink pb-2">
-            <h1 className="font-display text-xl font-bold uppercase tracking-wider text-ink">
-              Timesheet
-            </h1>
+          <div className="flex items-center justify-between pb-1">
+            <h1 className="text-xl font-bold text-ink">Timesheet</h1>
             <button
               data-press
-              className="inline-block bg-accent px-3.5 py-2 text-xs font-bold uppercase tracking-widest text-paper transition hover:bg-accent/90"
+              className="btn-glow inline-block rounded-lg bg-violet px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-violet/90"
             >
               + Log time
             </button>
@@ -121,9 +126,7 @@ function Preview() {
             onReset={noop}
           />
 
-          <h1 className="border-b-2 border-ink pb-2 pt-4 font-display text-xl font-bold uppercase tracking-wider text-ink">
-            Calendar
-          </h1>
+          <h1 className="pb-1 pt-4 text-xl font-bold text-ink">Calendar</h1>
           <MonthCalendar
             month={monthStart(today)}
             selected={today}

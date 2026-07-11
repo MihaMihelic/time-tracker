@@ -3,7 +3,7 @@ import { supabase } from "./supabase";
 
 // Display name for the person whose hours were shared with you.
 // (The client can't read other users' emails, so this is a plain label.)
-export const PARTNER_LABEL = "Partner";
+export const PARTNER_LABEL = "Buddy";
 
 // Who am I, and whose rows am I currently looking at?
 // viewedUserId === userId  -> my own data, full read/write UI.

@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { PARTNER_LABEL, useView } from "../lib/view";
 
@@ -54,20 +54,20 @@ function TabIcon({ children }) {
 }
 
 // Segmented switch between my own data and the read-only view of the
-// partner who granted access. Only rendered when a grant exists.
+// buddy who granted access. Only rendered when a grant exists.
 function ViewToggle() {
   const { canViewPartner, isViewingOther, viewPartner, viewSelf } = useView();
   if (!canViewPartner) return null;
 
   const btn = (active) =>
-    `px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest transition ${
-      active ? "bg-accent text-paper" : "text-steel hover:bg-sheet"
+    `rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
+      active ? "btn-glow bg-violet text-white" : "text-ink-muted hover:text-ink"
     }`;
 
   return (
     <div className="border-b border-line bg-paper">
-      <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-2">
-        <div className="inline-flex divide-x divide-line border border-line">
+      <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-2.5">
+        <div className="inline-flex gap-1 rounded-full border border-line bg-surface p-1 shadow-card">
           <button data-press className={btn(!isViewingOther)} onClick={viewSelf}>
             My hours
           </button>
@@ -76,7 +76,7 @@ function ViewToggle() {
           </button>
         </div>
         {isViewingOther && (
-          <span className="text-[11px] font-medium uppercase tracking-widest text-steel">
+          <span className="rounded-full border border-line bg-surface px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-ink-muted">
             Read-only
           </span>
         )}
@@ -88,25 +88,48 @@ function ViewToggle() {
 export default function Layout() {
   const signOut = () => supabase.auth.signOut();
 
+  // Dashboard and Calendar run the dark violet theme; Rates stays light.
+  // The token remap in .theme-dark restyles everything inside, and
+  // .theme-anim eases the colors when the route (and theme) changes.
+  const { pathname } = useLocation();
+  const dark = pathname === "/" || pathname.startsWith("/calendar");
+
   return (
-    <div className="min-h-screen bg-paper pb-20 text-ink md:pb-8">
-      <header className="sticky top-0 z-20 bg-steel text-paper">
+    <div
+      className={`theme-anim isolate min-h-screen bg-paper pb-20 text-ink md:pb-8 ${
+        dark ? "theme-dark" : ""
+      }`}
+    >
+      {/* Dark-view backdrop: near-black edges easing to deep violet at
+          the center. Gradients can't color-transition, so it cross-fades
+          via opacity over the wrapper's (transitioning) base color. */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 -z-10"
+        style={{
+          background:
+            "radial-gradient(ellipse 85% 70% at 50% 30%, #1a0b2e 0%, #0a0510 100%)",
+          opacity: dark ? 1 : 0,
+          transition: "opacity 220ms ease",
+        }}
+      />
+      <header className="sticky top-0 z-20 border-b border-line bg-surface">
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4">
-          <span className="font-display text-base font-bold uppercase tracking-[0.25em]">
+          <span className="text-base font-bold tracking-tight text-ink">
             TimeTrack
           </span>
 
-          <nav className="hidden items-center gap-5 md:flex">
+          <nav className="hidden items-center gap-1 md:flex">
             {tabs.map((t) => (
               <NavLink
                 key={t.to}
                 to={t.to}
                 end={t.to === "/"}
                 className={({ isActive }) =>
-                  `border-b-2 pb-0.5 text-xs font-semibold uppercase tracking-widest transition ${
+                  `rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
                     isActive
-                      ? "border-paper text-paper"
-                      : "border-transparent text-paper/60 hover:text-paper"
+                      ? "btn-glow bg-violet text-white"
+                      : "text-ink-muted hover:text-ink"
                   }`
                 }
               >
@@ -118,12 +141,11 @@ export default function Layout() {
           <button
             onClick={signOut}
             data-press
-            className="text-xs font-medium uppercase tracking-widest text-paper/60 transition hover:text-paper"
+            className="text-xs font-semibold text-ink-muted transition hover:text-ink"
           >
             Sign out
           </button>
         </div>
-        <div className="ticks bg-paper" />
       </header>
 
       <ViewToggle />
@@ -133,7 +155,7 @@ export default function Layout() {
       </main>
 
       {/* Mobile bottom tab bar */}
-      <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-sheet md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface md:hidden">
         <div className="mx-auto flex max-w-3xl items-stretch justify-around">
           {tabs.map((t) => (
             <NavLink
@@ -141,8 +163,8 @@ export default function Layout() {
               to={t.to}
               end={t.to === "/"}
               className={({ isActive }) =>
-                `flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[10px] font-semibold uppercase tracking-wider transition ${
-                  isActive ? "text-accent" : "text-steel/70"
+                `flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[10px] font-semibold transition ${
+                  isActive ? "text-violet" : "text-ink-muted"
                 }`
               }
             >

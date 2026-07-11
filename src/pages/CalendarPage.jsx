@@ -45,9 +45,7 @@ export default function CalendarPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="border-b-2 border-ink pb-2 font-display text-xl font-bold uppercase tracking-wider text-ink">
-        Calendar
-      </h1>
+      <h1 className="pb-1 text-xl font-bold text-ink">Calendar</h1>
 
       <MonthCalendar
         month={month}
@@ -58,7 +56,7 @@ export default function CalendarPage() {
       />
 
       {loading ? (
-        <div className="h-40 animate-pulse border border-line bg-sheet" />
+        <div className="h-40 animate-pulse rounded-xl bg-surface shadow-card" />
       ) : (
         <DayPanel
           date={selected}

@@ -10,7 +10,15 @@
       "Bash(timeout 30 bash -c 'until curl -sf http://localhost:5173/preview.html >/dev/null 2>&1; do sleep 1; done')",
       "PowerShell(Get-Item *)",
       "PowerShell(Out-Null *)",
-      "PowerShell(Get-Process *)"
+      "PowerShell(Get-Process *)",
+      "PowerShell(Select-String -Path dist\\\\assets\\\\index-BE4Prs1r.css -Pattern 'bg-white' -AllMatches | ForEach-Object { $_.Matches } | Select-Object -First 5 Value)",
+      "PowerShell($css = Get-Content dist\\\\assets\\\\index-BE4Prs1r.css -Raw; $i = $css.IndexOf\\('bg-white'\\); $css.Substring\\([Math]::Max\\(0,$i-80\\), 200\\))",
+      "Bash(command -v chromium-cli)",
+      "Bash(taskkill //F //IM node.exe //FI \"WINDOWTITLE ne Claude*\")",
+      "Bash(pkill -f vite)",
+      "Bash(curl -sf http://localhost:5173)",
+      "PowerShell(Get-CimInstance *)",
+      "PowerShell(node \"$env:LOCALAPPDATA\\\\Temp\\\\claude\\\\C--Users-nottp-time-tracker\\\\e9cb0a74-5969-4185-aa18-ec85e7c81ff3\\\\scratchpad\\\\contrast.mjs\")"
     ]
   }
 }
